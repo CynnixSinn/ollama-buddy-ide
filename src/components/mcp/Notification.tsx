@@ -38,12 +38,10 @@ export const useNotifications = () => {
     
     // Show in-app notification
     toast({
-      title: (
-        <div className="flex items-center">
+      title: <div className="flex items-center">
           <Bell className="h-4 w-4 mr-2 text-accent" />
           {title}
-        </div>
-      ),
+        </div>,
       description: message,
     });
     

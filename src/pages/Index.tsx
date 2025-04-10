@@ -14,7 +14,7 @@ const IndexContent = () => {
   const [showWelcome, setShowWelcome] = useState(true);
   const [showSettings, setShowSettings] = useState(false);
   const { isConnected } = useModelContext();
-  const { notificationsEnabled } = useNotifications();
+  const { notificationsEnabled, sendNotification } = useNotifications();
 
   const dismissWelcome = () => {
     setShowWelcome(false);
@@ -27,13 +27,12 @@ const IndexContent = () => {
   useEffect(() => {
     // If notifications are enabled, send a welcome notification
     if (notificationsEnabled) {
-      const { sendNotification } = useNotifications();
       sendNotification(
         "Ollama Buddy IDE",
         "Your AI-powered IDE is now connected and ready to assist you."
       );
     }
-  }, [notificationsEnabled]);
+  }, [notificationsEnabled, sendNotification]);
 
   return (
     <EditorLayout 
