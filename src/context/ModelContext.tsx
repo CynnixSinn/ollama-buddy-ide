@@ -1,5 +1,6 @@
 
-import { createContext, useContext, useState, ReactNode } from "react";
+import { createContext, useContext, useState, useEffect, ReactNode } from "react";
+import { toast } from "@/components/ui/use-toast";
 
 export type OllamaModel = {
   id: string;
@@ -10,6 +11,17 @@ export type OllamaModel = {
   capabilities: string[];
 };
 
+type McpServer = {
+  id: string;
+  name: string;
+  description: string;
+  url: string;
+  github: string;
+  enabled: boolean;
+  capabilities: string[];
+  configOptions?: Record<string, any>;
+};
+
 type ModelContextType = {
   availableModels: OllamaModel[];
   selectedModel: OllamaModel | null;
@@ -18,6 +30,11 @@ type ModelContextType = {
   setIsConnected: (connected: boolean) => void;
   ollamaEndpoint: string;
   setOllamaEndpoint: (endpoint: string) => void;
+  refreshModels: () => Promise<void>;
+  mcpServers: McpServer[];
+  toggleMcpServer: (id: string) => void;
+  getMcpServer: (id: string) => McpServer | undefined;
+  updateMcpServerConfig: (id: string, config: Record<string, any>) => void;
 };
 
 const defaultModels: OllamaModel[] = [
@@ -55,13 +72,201 @@ const defaultModels: OllamaModel[] = [
   },
 ];
 
+const defaultMcpServers: McpServer[] = [
+  {
+    id: "vision",
+    name: "Computer Vision",
+    description: "Visual understanding and screen analysis capabilities",
+    url: "https://github.com/ollama-webui/ollama-webui/tree/main/extensions/vision",
+    github: "ollama-webui/ollama-webui",
+    enabled: false,
+    capabilities: ["screenshot", "image-analysis", "code-visualization"],
+    configOptions: {
+      allowScreenCapture: true,
+      processingQuality: "high"
+    }
+  },
+  {
+    id: "browser",
+    name: "Web Browser",
+    description: "Enables web browsing and research capabilities",
+    url: "https://github.com/n4ze3m/page-assist/tree/main/server",
+    github: "n4ze3m/page-assist",
+    enabled: false,
+    capabilities: ["web-search", "webpage-analysis", "information-retrieval"],
+    configOptions: {
+      searchEngine: "duckduckgo",
+      resultLimit: 5
+    }
+  },
+  {
+    id: "file-io",
+    name: "File System",
+    description: "Read and write files on your local system",
+    url: "https://github.com/ggerganov/llama.cpp/tree/master/examples/server",
+    github: "ggerganov/llama.cpp",
+    enabled: false,
+    capabilities: ["file-read", "file-write", "directory-listing"],
+    configOptions: {
+      allowedDirectories: ["/home/user/projects"],
+      readOnly: false
+    }
+  },
+  {
+    id: "voice",
+    name: "Voice Assistant",
+    description: "Speech recognition and voice synthesis",
+    url: "https://github.com/coqui-ai/TTS",
+    github: "coqui-ai/TTS",
+    enabled: false,
+    capabilities: ["speech-to-text", "text-to-speech", "voice-commands"],
+    configOptions: {
+      voiceModel: "default",
+      language: "en-US"
+    }
+  },
+  {
+    id: "notification",
+    name: "Notifications",
+    description: "Send notifications to mobile devices",
+    url: "https://github.com/caronc/apprise",
+    github: "caronc/apprise",
+    enabled: false,
+    capabilities: ["push-notifications", "email-alerts", "sms-messages"],
+    configOptions: {
+      notificationService: "telegram",
+      contactInfo: ""
+    }
+  },
+  {
+    id: "memory",
+    name: "Long-term Memory",
+    description: "Persistent memory storage for conversations",
+    url: "https://github.com/chroma-core/chroma",
+    github: "chroma-core/chroma",
+    enabled: false,
+    capabilities: ["conversation-history", "knowledge-persistence", "context-recall"],
+    configOptions: {
+      storageType: "local",
+      retention: 30
+    }
+  },
+  {
+    id: "code-execution",
+    name: "Code Execution",
+    description: "Safely execute and test code snippets",
+    url: "https://github.com/opencoca/lt2d",
+    github: "opencoca/lt2d",
+    enabled: false,
+    capabilities: ["code-execution", "sandbox-environment", "test-runner"],
+    configOptions: {
+      languages: ["javascript", "python", "bash"],
+      timeoutSeconds: 10
+    }
+  },
+  {
+    id: "tools",
+    name: "Developer Tools",
+    description: "Access to programming tools and utilities",
+    url: "https://github.com/TomWright/dasel",
+    github: "TomWright/dasel",
+    enabled: false,
+    capabilities: ["git-operations", "data-parsing", "format-conversion"],
+    configOptions: {
+      allowedTools: ["git", "docker", "npm"],
+      restrictSudoCommands: true
+    }
+  }
+];
+
 const ModelContext = createContext<ModelContextType | undefined>(undefined);
 
 export const ModelProvider = ({ children }: { children: ReactNode }) => {
-  const [availableModels] = useState<OllamaModel[]>(defaultModels);
+  const [availableModels, setAvailableModels] = useState<OllamaModel[]>(defaultModels);
   const [selectedModel, setSelectedModel] = useState<OllamaModel | null>(defaultModels[0]);
   const [isConnected, setIsConnected] = useState(true);
   const [ollamaEndpoint, setOllamaEndpoint] = useState("http://localhost:11434");
+  const [mcpServers, setMcpServers] = useState<McpServer[]>(defaultMcpServers);
+
+  const detectLocalOllamaModels = async () => {
+    try {
+      const response = await fetch(`${ollamaEndpoint}/api/tags`);
+      
+      if (!response.ok) {
+        throw new Error("Failed to connect to Ollama");
+      }
+      
+      const data = await response.json();
+      
+      if (data.models) {
+        const detectedModels: OllamaModel[] = data.models.map((model: any) => {
+          const existingModel = availableModels.find(m => m.id === model.name);
+          return {
+            id: model.name,
+            name: model.name.charAt(0).toUpperCase() + model.name.slice(1),
+            size: model.size ? `${Math.round(model.size / 1000000000)}B` : "?B",
+            description: model.details || `Local ${model.name} model`,
+            installed: true,
+            capabilities: existingModel?.capabilities || ["chat", "code", "completion"],
+          };
+        });
+        
+        setAvailableModels(detectedModels);
+        
+        if (detectedModels.length > 0 && !selectedModel) {
+          setSelectedModel(detectedModels[0]);
+        }
+        
+        setIsConnected(true);
+        toast({
+          title: "Ollama connected",
+          description: `Found ${detectedModels.length} local models`
+        });
+      }
+    } catch (error) {
+      console.error("Failed to detect Ollama models:", error);
+      setIsConnected(false);
+    }
+  };
+
+  const refreshModels = async () => {
+    await detectLocalOllamaModels();
+  };
+
+  const toggleMcpServer = (id: string) => {
+    setMcpServers(servers => 
+      servers.map(server => 
+        server.id === id ? { ...server, enabled: !server.enabled } : server
+      )
+    );
+    
+    const server = mcpServers.find(s => s.id === id);
+    if (server) {
+      toast({
+        title: server.enabled ? `${server.name} Disabled` : `${server.name} Enabled`,
+        description: server.enabled 
+          ? `${server.name} MCP server has been disabled` 
+          : `${server.name} MCP server has been enabled`
+      });
+    }
+  };
+
+  const getMcpServer = (id: string) => {
+    return mcpServers.find(server => server.id === id);
+  };
+
+  const updateMcpServerConfig = (id: string, config: Record<string, any>) => {
+    setMcpServers(servers =>
+      servers.map(server =>
+        server.id === id ? { ...server, configOptions: { ...server.configOptions, ...config } } : server
+      )
+    );
+  };
+
+  useEffect(() => {
+    // Auto-detect models on mount
+    detectLocalOllamaModels();
+  }, [ollamaEndpoint]);
 
   return (
     <ModelContext.Provider
@@ -73,6 +278,11 @@ export const ModelProvider = ({ children }: { children: ReactNode }) => {
         setIsConnected,
         ollamaEndpoint,
         setOllamaEndpoint,
+        refreshModels,
+        mcpServers,
+        toggleMcpServer,
+        getMcpServer,
+        updateMcpServerConfig
       }}
     >
       {children}

@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { SidebarNav } from "./SidebarNav";
 import { TopBar } from "./TopBar";
 import { useModelContext } from "@/context/ModelContext";
@@ -7,7 +7,8 @@ import { Button } from "@/components/ui/button";
 import { toast } from "@/components/ui/use-toast";
 import { 
   AlertTriangle, 
-  CheckCircle2 
+  CheckCircle2,
+  Loader2
 } from "lucide-react";
 
 interface EditorLayoutProps {
@@ -16,24 +17,25 @@ interface EditorLayoutProps {
 }
 
 const EditorLayout = ({ children, onSettingsClick }: EditorLayoutProps) => {
-  const { isConnected, ollamaEndpoint } = useModelContext();
+  const { isConnected, ollamaEndpoint, refreshModels, availableModels } = useModelContext();
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
+  const [connecting, setConnecting] = useState(false);
 
-  const handleConnection = () => {
+  const handleConnection = async () => {
     toast({
       title: "Connection attempt",
       description: `Trying to connect to Ollama at ${ollamaEndpoint}`,
     });
     
-    // Simulate connection attempt
-    setTimeout(() => {
-      toast({
-        title: "Connection failed",
-        description: "Ensure Ollama is running locally and try again",
-        variant: "destructive"
-      });
-    }, 2000);
+    setConnecting(true);
+    await refreshModels();
+    setConnecting(false);
   };
+
+  useEffect(() => {
+    // Auto-detect Ollama when the component mounts
+    refreshModels();
+  }, []);
 
   return (
     <div className="min-h-screen flex flex-col bg-background">
@@ -54,8 +56,15 @@ const EditorLayout = ({ children, onSettingsClick }: EditorLayoutProps) => {
                   Not connected to Ollama. Make sure Ollama is running locally.
                 </p>
               </div>
-              <Button size="sm" onClick={handleConnection}>
-                Try connecting
+              <Button size="sm" onClick={handleConnection} disabled={connecting}>
+                {connecting ? (
+                  <>
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    Connecting...
+                  </>
+                ) : (
+                  "Try connecting"
+                )}
               </Button>
             </div>
           )}
@@ -64,7 +73,7 @@ const EditorLayout = ({ children, onSettingsClick }: EditorLayoutProps) => {
             <div className="bg-accent/10 p-2 flex items-center gap-2">
               <CheckCircle2 className="h-4 w-4 text-accent" />
               <p className="text-xs text-muted-foreground">
-                Connected to Ollama at {ollamaEndpoint}
+                Connected to Ollama at {ollamaEndpoint} • {availableModels.length} models available
               </p>
             </div>
           )}

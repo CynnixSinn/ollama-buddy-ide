@@ -16,7 +16,11 @@ import {
   Globe,
   HardDrive,
   Bell,
-  BellRing
+  BellRing,
+  Brain,
+  Terminal,
+  CodeXml,
+  Database
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
@@ -27,7 +31,30 @@ interface SidebarNavProps {
 }
 
 export function SidebarNav({ isCollapsed, onToggleCollapse }: SidebarNavProps) {
-  const { selectedModel } = useModelContext();
+  const { selectedModel, mcpServers } = useModelContext();
+
+  const getMcpIcon = (id: string) => {
+    switch (id) {
+      case "vision":
+        return Eye;
+      case "browser":
+        return Globe;
+      case "file-io":
+        return FileCode;
+      case "voice":
+        return Mic;
+      case "notification":
+        return Bell;
+      case "memory":
+        return Brain;
+      case "code-execution":
+        return CodeXml;
+      case "tools":
+        return Terminal;
+      default:
+        return Database;
+    }
+  };
 
   const NavItem = ({ 
     icon: Icon, 
@@ -71,33 +98,72 @@ export function SidebarNav({ isCollapsed, onToggleCollapse }: SidebarNavProps) {
     );
   };
 
-  const McpSection = () => (
-    <>
-      <div className={cn(
-        "flex items-center px-3 py-2",
-        isCollapsed ? "justify-center" : "justify-between"
-      )}>
-        {!isCollapsed && <h3 className="text-xs uppercase text-muted-foreground">MCP Servers</h3>}
-        {isCollapsed && (
-          <TooltipProvider>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <div className="h-5 w-5 flex items-center justify-center">
-                  <span className="text-xs font-bold text-accent">MCP</span>
-                </div>
-              </TooltipTrigger>
-              <TooltipContent side="right">MCP Servers</TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
+  const McpSection = () => {
+    const enabledMcpServers = mcpServers.filter(server => server.enabled);
+    
+    return (
+      <>
+        <div className={cn(
+          "flex items-center px-3 py-2",
+          isCollapsed ? "justify-center" : "justify-between"
+        )}>
+          {!isCollapsed && (
+            <h3 className="text-xs uppercase text-muted-foreground">
+              MCP Servers ({enabledMcpServers.length}/{mcpServers.length})
+            </h3>
+          )}
+          {isCollapsed && (
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <div className="h-5 w-5 flex items-center justify-center">
+                    <span className="text-xs font-bold text-accent">MCP</span>
+                  </div>
+                </TooltipTrigger>
+                <TooltipContent side="right">MCP Servers ({enabledMcpServers.length}/{mcpServers.length})</TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          )}
+        </div>
+        
+        {enabledMcpServers.length > 0 ? (
+          enabledMcpServers.map(server => {
+            const Icon = getMcpIcon(server.id);
+            let BridgeIcon;
+            
+            switch (server.id) {
+              case "notification":
+                BridgeIcon = BellRing;
+                break;
+              case "memory":
+                BridgeIcon = Brain;
+                break;
+              default:
+                BridgeIcon = HardDrive;
+                break;
+            }
+            
+            return (
+              <NavItem 
+                key={server.id}
+                icon={Icon} 
+                label={server.name}
+                bridgeIcon={BridgeIcon}
+                badge={server.id === "notification" || server.id === "voice"}
+              />
+            );
+          })
+        ) : (
+          <div className={cn(
+            "text-xs text-muted-foreground",
+            isCollapsed ? "text-center px-1" : "px-3 py-2"
+          )}>
+            {isCollapsed ? "0" : "No MCP servers enabled"}
+          </div>
         )}
-      </div>
-      <NavItem icon={Eye} label="Vision" bridgeIcon={HardDrive} />
-      <NavItem icon={Globe} label="Browser" bridgeIcon={HardDrive} />
-      <NavItem icon={FileCode} label="File I/O" bridgeIcon={HardDrive} />
-      <NavItem icon={Mic} label="Voice" bridgeIcon={HardDrive} badge />
-      <NavItem icon={Bell} label="Notifications" bridgeIcon={BellRing} badge />
-    </>
-  );
+      </>
+    );
+  };
 
   return (
     <div
