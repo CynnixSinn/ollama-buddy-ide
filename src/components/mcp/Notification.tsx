@@ -36,13 +36,18 @@ export const useNotifications = () => {
     // Simulate sending an external notification
     console.log(`Sending notification: ${title} - ${message} (${priority})`);
     
-    // Show in-app notification
+    // Show in-app notification - Fix: Don't use a React element directly in the title property
     toast({
-      title: <div className="flex items-center">
-          <Bell className="h-4 w-4 mr-2 text-accent" />
-          {title}
-        </div>,
+      title: title,
       description: message,
+      // Add a custom icon in the description instead
+      descriptionClassName: "flex items-center gap-2",
+      description: (
+        <div className="flex items-center gap-2">
+          <Bell className="h-4 w-4 text-accent" />
+          <span>{message}</span>
+        </div>
+      ),
     });
     
     return true;
