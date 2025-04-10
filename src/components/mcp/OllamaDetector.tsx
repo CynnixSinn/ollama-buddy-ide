@@ -9,9 +9,10 @@ import { useNotifications } from "./Notification";
  * Use this in the main Index.tsx to automatically detect models on app start
  */
 export default function OllamaDetector() {
-  const { refreshModels, isConnected, availableModels, ollamaEndpoint } = useModelContext();
+  const { refreshModels, isConnected, availableModels, ollamaEndpoint, setOllamaEndpoint } = useModelContext();
   const { sendNotification, notificationsEnabled } = useNotifications();
   const [initialDetectionDone, setInitialDetectionDone] = useState(false);
+  const [detectingEndpoints, setDetectingEndpoints] = useState(false);
   
   useEffect(() => {
     // Try to detect Ollama models when component mounts
@@ -24,32 +25,8 @@ export default function OllamaDetector() {
         console.error("Failed to detect Ollama:", error);
         
         // Try alternative endpoints if the default one fails
-        if (ollamaEndpoint === "http://localhost:11434" && !initialDetectionDone) {
-          const alternativeEndpoints = [
-            "http://127.0.0.1:11434",
-            "http://localhost:8000/ollama", // In case of proxy setup
-            "http://host.docker.internal:11434" // For Docker environments
-          ];
-          
-          console.log("Trying alternative Ollama endpoints...");
-          for (const endpoint of alternativeEndpoints) {
-            try {
-              console.log(`Trying alternative endpoint: ${endpoint}`);
-              // We don't directly update the endpoint here to avoid re-triggering effects
-              // Just test if it works
-              const response = await fetch(`${endpoint}/api/tags`);
-              if (response.ok) {
-                console.log(`Found working endpoint: ${endpoint}`);
-                toast({
-                  title: "Ollama connection successful",
-                  description: `Connected to Ollama at ${endpoint}`,
-                });
-                break;
-              }
-            } catch (altError) {
-              console.log(`Alternative endpoint ${endpoint} failed:`, altError);
-            }
-          }
+        if (!initialDetectionDone && !detectingEndpoints) {
+          await tryAlternativeEndpoints();
         }
       }
     };
@@ -63,6 +40,48 @@ export default function OllamaDetector() {
     
     return () => clearInterval(interval);
   }, [ollamaEndpoint, refreshModels]);
+
+  const tryAlternativeEndpoints = async () => {
+    setDetectingEndpoints(true);
+    
+    const alternativeEndpoints = [
+      "http://localhost:11434",
+      "http://127.0.0.1:11434",
+      "http://localhost:8000/ollama", // In case of proxy setup
+      "http://host.docker.internal:11434", // For Docker environments
+      "http://10.0.2.2:11434", // For Android emulator
+      "http://172.17.0.1:11434", // Docker default bridge
+      "http://192.168.1.1:11434" // Common local network IP
+    ];
+    
+    console.log("Trying alternative Ollama endpoints...");
+    
+    for (const endpoint of alternativeEndpoints) {
+      try {
+        console.log(`Trying alternative endpoint: ${endpoint}`);
+        const response = await fetch(`${endpoint}/api/tags`);
+        
+        if (response.ok) {
+          console.log(`Found working endpoint: ${endpoint}`);
+          
+          // Update the endpoint in the context
+          setOllamaEndpoint(endpoint);
+          
+          toast({
+            title: "Ollama connection successful",
+            description: `Connected to Ollama at ${endpoint}`,
+          });
+          
+          setInitialDetectionDone(true);
+          break;
+        }
+      } catch (altError) {
+        console.log(`Alternative endpoint ${endpoint} failed:`, altError);
+      }
+    }
+    
+    setDetectingEndpoints(false);
+  };
   
   useEffect(() => {
     // When connection state changes, show appropriate notifications

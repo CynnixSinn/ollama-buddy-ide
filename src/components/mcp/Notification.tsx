@@ -36,7 +36,7 @@ export const useNotifications = () => {
     // Simulate sending an external notification
     console.log(`Sending notification: ${title} - ${message} (${priority})`);
     
-    // Show in-app notification - Fixed to use proper toast properties
+    // Show in-app notification
     toast({
       title: title,
       description: (

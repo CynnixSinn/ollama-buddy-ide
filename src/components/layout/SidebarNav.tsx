@@ -20,7 +20,12 @@ import {
   Brain,
   Terminal,
   CodeXml,
-  Database
+  Database,
+  Image,
+  Bot,
+  Function,
+  Search,
+  ArrowUpDown
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
@@ -51,6 +56,16 @@ export function SidebarNav({ isCollapsed, onToggleCollapse }: SidebarNavProps) {
         return CodeXml;
       case "tools":
         return Terminal;
+      case "rag":
+        return Search;
+      case "vector-db":
+        return Database;
+      case "image-gen":
+        return Image;
+      case "agents":
+        return Bot;
+      case "function-calling":
+        return Function;
       default:
         return Database;
     }
@@ -138,6 +153,12 @@ export function SidebarNav({ isCollapsed, onToggleCollapse }: SidebarNavProps) {
               case "memory":
                 BridgeIcon = Brain;
                 break;
+              case "rag":
+                BridgeIcon = Search;
+                break;
+              case "vector-db":
+                BridgeIcon = ArrowUpDown;
+                break;
               default:
                 BridgeIcon = HardDrive;
                 break;
@@ -149,7 +170,7 @@ export function SidebarNav({ isCollapsed, onToggleCollapse }: SidebarNavProps) {
                 icon={Icon} 
                 label={server.name}
                 bridgeIcon={BridgeIcon}
-                badge={server.id === "notification" || server.id === "voice"}
+                badge={["notification", "voice", "rag", "agents", "function-calling"].includes(server.id)}
               />
             );
           })

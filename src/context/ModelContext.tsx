@@ -77,8 +77,8 @@ const defaultMcpServers: McpServer[] = [
     id: "vision",
     name: "Computer Vision",
     description: "Visual understanding and screen analysis capabilities",
-    url: "https://github.com/ollama-webui/ollama-webui/tree/main/extensions/vision",
-    github: "ollama-webui/ollama-webui",
+    url: "https://github.com/cansik/visual-computing-rs",
+    github: "cansik/visual-computing-rs",
     enabled: false,
     capabilities: ["screenshot", "image-analysis", "code-visualization"],
     configOptions: {
@@ -103,8 +103,8 @@ const defaultMcpServers: McpServer[] = [
     id: "file-io",
     name: "File System",
     description: "Read and write files on your local system",
-    url: "https://github.com/ggerganov/llama.cpp/tree/master/examples/server",
-    github: "ggerganov/llama.cpp",
+    url: "https://github.com/ollama/ollama/tree/main/cmd/ollama",
+    github: "ollama/ollama",
     enabled: false,
     capabilities: ["file-read", "file-write", "directory-listing"],
     configOptions: {
@@ -142,8 +142,8 @@ const defaultMcpServers: McpServer[] = [
     id: "memory",
     name: "Long-term Memory",
     description: "Persistent memory storage for conversations",
-    url: "https://github.com/chroma-core/chroma",
-    github: "chroma-core/chroma",
+    url: "https://github.com/langchain-ai/langchainjs",
+    github: "langchain-ai/langchainjs",
     enabled: false,
     capabilities: ["conversation-history", "knowledge-persistence", "context-recall"],
     configOptions: {
@@ -155,8 +155,8 @@ const defaultMcpServers: McpServer[] = [
     id: "code-execution",
     name: "Code Execution",
     description: "Safely execute and test code snippets",
-    url: "https://github.com/opencoca/lt2d",
-    github: "opencoca/lt2d",
+    url: "https://github.com/lablup/backend.ai",
+    github: "lablup/backend.ai",
     enabled: false,
     capabilities: ["code-execution", "sandbox-environment", "test-runner"],
     configOptions: {
@@ -175,6 +175,79 @@ const defaultMcpServers: McpServer[] = [
     configOptions: {
       allowedTools: ["git", "docker", "npm"],
       restrictSudoCommands: true
+    }
+  },
+  {
+    id: "rag",
+    name: "RAG Engine",
+    description: "Retrieval-Augmented Generation for content generation",
+    url: "https://github.com/jerryjliu/llama_index",
+    github: "jerryjliu/llama_index",
+    enabled: false,
+    capabilities: ["document-indexing", "retrieval", "augmented-generation"],
+    configOptions: {
+      embeddingModel: "sentence-transformers",
+      chunkSize: 512,
+      maxResults: 5
+    }
+  },
+  {
+    id: "vector-db",
+    name: "Vector Database",
+    description: "Semantic search and storage for embeddings",
+    url: "https://github.com/milvus-io/milvus",
+    github: "milvus-io/milvus",
+    enabled: false,
+    capabilities: ["vector-storage", "similarity-search", "knowledge-base"],
+    configOptions: {
+      dimensions: 1536,
+      metricType: "cosine",
+      persistData: true,
+      dbPath: "./vector-db"
+    }
+  },
+  {
+    id: "image-gen",
+    name: "Image Generation",
+    description: "Generate images from text descriptions",
+    url: "https://github.com/stability-AI/stable-diffusion",
+    github: "stability-AI/stable-diffusion",
+    enabled: false,
+    capabilities: ["text-to-image", "image-editing", "style-transfer"],
+    configOptions: {
+      model: "stable-diffusion-xl",
+      width: 512,
+      height: 512,
+      steps: 20,
+      cfgScale: 7.0
+    }
+  },
+  {
+    id: "agents",
+    name: "Autonomous Agents",
+    description: "Self-directed AI agents that can complete complex tasks",
+    url: "https://github.com/yoheinakajima/babyagi",
+    github: "yoheinakajima/babyagi",
+    enabled: false,
+    capabilities: ["task-planning", "execution", "tool-usage"],
+    configOptions: {
+      maxIterations: 5,
+      maxTasks: 10,
+      objective: "Complete research tasks"
+    }
+  },
+  {
+    id: "function-calling",
+    name: "Function Calling",
+    description: "Allow models to call external functions",
+    url: "https://github.com/langchain-ai/langchain",
+    github: "langchain-ai/langchain",
+    enabled: false,
+    capabilities: ["tool-calling", "api-integration", "structured-output"],
+    configOptions: {
+      allowedFunctions: ["calculator", "weather", "search"],
+      strictValidation: true,
+      timeoutSeconds: 30
     }
   }
 ];
