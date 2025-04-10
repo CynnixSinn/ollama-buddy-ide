@@ -25,7 +25,11 @@ import {
   Bot,
   Code,
   Search,
-  ArrowUpDown
+  ArrowUpDown,
+  FileText,
+  MessageSquare,
+  Newspaper,
+  BookOpen
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
@@ -66,6 +70,12 @@ export function SidebarNav({ isCollapsed, onToggleCollapse }: SidebarNavProps) {
         return Bot;
       case "function-calling":
         return Code; // Changed from Function to Code
+      case "text-to-sql":
+        return Database;
+      case "chatbot":
+        return MessageSquare;
+      case "pdf-tools":
+        return FileText;
       default:
         return Database;
     }

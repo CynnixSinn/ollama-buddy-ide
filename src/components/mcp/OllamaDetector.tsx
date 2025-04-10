@@ -51,7 +51,10 @@ export default function OllamaDetector() {
       "http://host.docker.internal:11434", // For Docker environments
       "http://10.0.2.2:11434", // For Android emulator
       "http://172.17.0.1:11434", // Docker default bridge
-      "http://192.168.1.1:11434" // Common local network IP
+      "http://192.168.1.1:11434", // Common local network IP
+      "http://ollama:11434", // Container name in docker-compose
+      "http://localhost:8080/api/ollama", // Common reverse proxy setup
+      "http://host.containers.internal:11434" // podman/newer Docker
     ];
     
     console.log("Trying alternative Ollama endpoints...");
@@ -59,7 +62,9 @@ export default function OllamaDetector() {
     for (const endpoint of alternativeEndpoints) {
       try {
         console.log(`Trying alternative endpoint: ${endpoint}`);
-        const response = await fetch(`${endpoint}/api/tags`);
+        const response = await fetch(`${endpoint}/api/tags`, {
+          signal: AbortSignal.timeout(3000) // Timeout after 3 seconds
+        });
         
         if (response.ok) {
           console.log(`Found working endpoint: ${endpoint}`);

@@ -77,13 +77,14 @@ const defaultMcpServers: McpServer[] = [
     id: "vision",
     name: "Computer Vision",
     description: "Visual understanding and screen analysis capabilities",
-    url: "https://github.com/cansik/visual-computing-rs",
-    github: "cansik/visual-computing-rs",
+    url: "https://github.com/microsoft/autogen",
+    github: "microsoft/autogen",
     enabled: false,
     capabilities: ["screenshot", "image-analysis", "code-visualization"],
     configOptions: {
       allowScreenCapture: true,
-      processingQuality: "high"
+      processingQuality: "high",
+      modelType: "clip"
     }
   },
   {
@@ -96,20 +97,22 @@ const defaultMcpServers: McpServer[] = [
     capabilities: ["web-search", "webpage-analysis", "information-retrieval"],
     configOptions: {
       searchEngine: "duckduckgo",
-      resultLimit: 5
+      resultLimit: 5,
+      userAgent: "Mozilla/5.0 (compatible; OllamaBuddy/1.0)"
     }
   },
   {
     id: "file-io",
     name: "File System",
     description: "Read and write files on your local system",
-    url: "https://github.com/ollama/ollama/tree/main/cmd/ollama",
-    github: "ollama/ollama",
+    url: "https://github.com/jmorganca/ollama",
+    github: "jmorganca/ollama",
     enabled: false,
     capabilities: ["file-read", "file-write", "directory-listing"],
     configOptions: {
       allowedDirectories: ["/home/user/projects"],
-      readOnly: false
+      readOnly: false,
+      maxFileSize: 10 // MB
     }
   },
   {
@@ -122,7 +125,8 @@ const defaultMcpServers: McpServer[] = [
     capabilities: ["speech-to-text", "text-to-speech", "voice-commands"],
     configOptions: {
       voiceModel: "default",
-      language: "en-US"
+      language: "en-US",
+      audioQuality: "high"
     }
   },
   {
@@ -135,7 +139,8 @@ const defaultMcpServers: McpServer[] = [
     capabilities: ["push-notifications", "email-alerts", "sms-messages"],
     configOptions: {
       notificationService: "telegram",
-      contactInfo: ""
+      contactInfo: "",
+      priorityLevel: "normal"
     }
   },
   {
@@ -148,7 +153,8 @@ const defaultMcpServers: McpServer[] = [
     capabilities: ["conversation-history", "knowledge-persistence", "context-recall"],
     configOptions: {
       storageType: "local",
-      retention: 30
+      retention: 30,
+      vectorStore: "faiss"
     }
   },
   {
@@ -161,7 +167,8 @@ const defaultMcpServers: McpServer[] = [
     capabilities: ["code-execution", "sandbox-environment", "test-runner"],
     configOptions: {
       languages: ["javascript", "python", "bash"],
-      timeoutSeconds: 10
+      timeoutSeconds: 10,
+      memoryLimit: 512 // MB
     }
   },
   {
@@ -174,7 +181,8 @@ const defaultMcpServers: McpServer[] = [
     capabilities: ["git-operations", "data-parsing", "format-conversion"],
     configOptions: {
       allowedTools: ["git", "docker", "npm"],
-      restrictSudoCommands: true
+      restrictSudoCommands: true,
+      environmentIsolation: "container"
     }
   },
   {
@@ -188,7 +196,8 @@ const defaultMcpServers: McpServer[] = [
     configOptions: {
       embeddingModel: "sentence-transformers",
       chunkSize: 512,
-      maxResults: 5
+      maxResults: 5,
+      similarityThreshold: 0.7
     }
   },
   {
@@ -210,8 +219,8 @@ const defaultMcpServers: McpServer[] = [
     id: "image-gen",
     name: "Image Generation",
     description: "Generate images from text descriptions",
-    url: "https://github.com/stability-AI/stable-diffusion",
-    github: "stability-AI/stable-diffusion",
+    url: "https://github.com/CompVis/stable-diffusion",
+    github: "CompVis/stable-diffusion",
     enabled: false,
     capabilities: ["text-to-image", "image-editing", "style-transfer"],
     configOptions: {
@@ -248,6 +257,48 @@ const defaultMcpServers: McpServer[] = [
       allowedFunctions: ["calculator", "weather", "search"],
       strictValidation: true,
       timeoutSeconds: 30
+    }
+  },
+  {
+    id: "text-to-sql",
+    name: "Text to SQL",
+    description: "Convert natural language queries to SQL statements",
+    url: "https://github.com/defog-ai/sqlcoder",
+    github: "defog-ai/sqlcoder",
+    enabled: false,
+    capabilities: ["natural-language-to-sql", "database-schema-understanding", "query-generation"],
+    configOptions: {
+      databaseDialect: "postgresql",
+      explainQueries: true,
+      includeSampleData: false
+    }
+  },
+  {
+    id: "chatbot",
+    name: "Chatbot Builder",
+    description: "Create and deploy customizable chatbots",
+    url: "https://github.com/botpress/botpress",
+    github: "botpress/botpress",
+    enabled: false,
+    capabilities: ["conversation-design", "intent-recognition", "multi-platform-deployment"],
+    configOptions: {
+      framework: "botpress",
+      channels: ["web", "telegram", "slack"],
+      nluEngine: "builtin"
+    }
+  },
+  {
+    id: "pdf-tools",
+    name: "PDF Processor",
+    description: "Extract information and convert PDF documents",
+    url: "https://github.com/pymupdf/PyMuPDF",
+    github: "pymupdf/PyMuPDF",
+    enabled: false,
+    capabilities: ["text-extraction", "pdf-parsing", "document-conversion"],
+    configOptions: {
+      extractImages: true,
+      ocrEnabled: false,
+      preserveFormatting: true
     }
   }
 ];
