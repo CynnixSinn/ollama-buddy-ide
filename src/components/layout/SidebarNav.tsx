@@ -23,7 +23,7 @@ import {
   Database,
   Image,
   Bot,
-  Function,
+  Code,
   Search,
   ArrowUpDown
 } from "lucide-react";
@@ -65,7 +65,7 @@ export function SidebarNav({ isCollapsed, onToggleCollapse }: SidebarNavProps) {
       case "agents":
         return Bot;
       case "function-calling":
-        return Function;
+        return Code; // Changed from Function to Code
       default:
         return Database;
     }
